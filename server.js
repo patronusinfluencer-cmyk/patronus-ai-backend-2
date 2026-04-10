@@ -32,7 +32,7 @@ ${situatie}
       input: prompt
     });
 
-    res.json({ tekst: response.output_text });
+    res.jsonres.json({ tekst: response.output[0].content[0].text });
 
   } catch (error) {
     res.status(500).json({ error: "AI fout" });
