@@ -10,19 +10,50 @@ app.get("/", (req, res) => {
   res.send("Patronus backend draait");
 });
 
-// Reflectie (gratis versie)
+// Reflectie (slimme gratis versie)
 app.post("/reflectie", (req, res) => {
-  const situatie = req.body?.situatie || "Geen situatie opgegeven";
+  const situatie = req.body?.situatie || "";
+
+  const s = situatie.toLowerCase();
+
+  let reflectie = "";
+  let analyse = "";
+  let dialoog = "";
+
+  // 🔍 HERKENNING
+  if (s.includes("telefoon") || s.includes("contact") || s.includes("meelezen")) {
+    reflectie = "De situatie raakt direct aan autonomie en communicatievrijheid van de cliënt.";
+    analyse = "Het beperken van communicatie of meekijken kan onder de Wzd vallen als onvrijwillige zorg. Dit vraagt om een duidelijke onderbouwing en toetsing aan proportionaliteit en subsidiariteit.";
+    dialoog = "“Ik begrijp de zorgen. Tegelijk is communicatie een belangrijk recht. Hoe zorgen we dat veiligheid en autonomie in balans blijven?”";
+  } 
+  
+  else if (s.includes("agressie") || s.includes("onveilig")) {
+    reflectie = "Hier lijkt veiligheid een dominante factor te zijn in het handelen.";
+    analyse = "Binnen de Wzd mag veiligheid nooit los gezien worden van rechten. Ook bij risico moet gezocht worden naar de minst ingrijpende maatregel.";
+    dialoog = "“Wat maakt deze situatie onveilig, en welke minst ingrijpende stappen zijn mogelijk om dit te verbeteren?”";
+  } 
+  
+  else if (s.includes("beperken") || s.includes("vast") || s.includes("tegenhouden")) {
+    reflectie = "Er is sprake van ingrijpen in vrijheid van de cliënt.";
+    analyse = "Dit kan onder onvrijwillige zorg vallen en moet voldoen aan de Wzd: zorgvuldig, tijdelijk en goed vastgelegd.";
+    dialoog = "“Hoe is deze maatregel tot stand gekomen, en is de cliënt hierin voldoende gehoord?”";
+  } 
+  
+  else {
+    reflectie = "De situatie vraagt om een zorgvuldige afweging tussen zorg en autonomie.";
+    analyse = "Binnen de Wzd is het uitgangspunt altijd: nee, tenzij. Dat betekent dat elke beperking goed onderbouwd en minimaal ingrijpend moet zijn.";
+    dialoog = "“Wat maakt dat deze keuze nu gemaakt wordt, en zijn er minder ingrijpende alternatieven overwogen?”";
+  }
 
   const tekst = `
 🔍 Reflectie  
-De situatie die je beschrijft laat een spanningsveld zien tussen bescherming en autonomie. Het handelen lijkt ingegeven door zorg, maar roept vragen op over de positie van de cliënt.
+${reflectie}
 
 ⚖️ Analyse (Wzd)  
-Binnen de Wet zorg en dwang geldt het uitgangspunt: nee, tenzij. Beperkingen zoals controle van communicatie of beperking van contact kunnen vallen onder onvrijwillige zorg. Dit vraagt om een zorgvuldige afweging van proportionaliteit, subsidiariteit en vooral: is de cliënt gehoord en betrokken?
+${analyse}
 
 🗣️ Dialoog  
-"Ik merk dat er zorgen zijn over veiligheid. Tegelijk zie ik dat dit invloed heeft op de autonomie van de cliënt. Hoe kunnen we samen kijken naar een oplossing die zowel veiligheid als eigen regie respecteert?"
+${dialoog}
 
 📌 Jouw situatie:  
 ${situatie}
