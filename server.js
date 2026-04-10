@@ -10,10 +10,12 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Test route
 app.get("/", (req, res) => {
   res.send("Patronus AI backend draait");
 });
 
+// Reflectie route
 app.post("/reflectie", async (req, res) => {
   try {
     const situatie = req.body.situatie;
@@ -38,20 +40,20 @@ ${situatie}
       input: prompt
     });
 
-    const tekst = response.output[0].content[0].text;
+    // BELANGRIJK: juiste uitlezing (crash fix)
+    const tekst = response.output_text;
 
     res.json({ tekst });
 
   } catch (error) {
-    console.error(error);
+    console.error("Fout in AI:", error);
     res.status(500).json({ error: "AI fout" });
   }
 });
 
+// Poort voor Render
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log("Server draait op poort " + PORT);
 });
-
-  } catch (error) {
