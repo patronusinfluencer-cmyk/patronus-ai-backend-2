@@ -5,66 +5,70 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// helper
 function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// 🎭 toon
+// 🧠 herken of het een vraag is
+function isVraag(s) {
+  return s.includes("wie") || s.includes("wat") || s.includes("waarom") || s.includes("hoe");
+}
+
+// 🧠 simpele antwoorden
+function antwoordOpVraag(s) {
+  if (s.includes("wie is patronus")) {
+    return `
+Patronus is een reflectiepartner die helpt bij het analyseren van situaties binnen zorg, gedrag en de Wet zorg en dwang.  
+Het doel is om bewustwording te vergroten, spanning zichtbaar te maken en tot zorgvuldiger handelen te komen.
+`;
+  }
+
+  if (s.includes("wat bedoel je")) {
+    return `
+Met de reflectie wordt bedoeld dat we samen kijken naar wat er onder het handelen ligt:  
+intenties, effecten en de positie van de cliënt.
+
+Het gaat dus niet alleen om wat er gebeurt, maar vooral waarom en hoe.
+`;
+  }
+
+  return `
+Dat is een goede vraag.  
+Probeer hem iets concreter te maken of koppel hem aan een situatie, dan kan ik gerichter met je meedenken.
+`;
+}
+
+// 🎭 reflectie (oude logica)
 const toon = [
   "Hier schuurt het — en dat is niet toevallig.",
   "Je voelt dat dit niet helemaal klopt.",
-  "Dit vraagt om vertraging en reflectie.",
-  "Hier zit spanning tussen intentie en effect."
+  "Dit vraagt om vertraging en reflectie."
 ];
 
-// ⚖️ juridisch
 const juridisch = [
   "Binnen de Wzd geldt het uitgangspunt: nee, tenzij.",
   "Dit kan vallen onder onvrijwillige zorg.",
   "De kernvraag is proportionaliteit en subsidiariteit."
 ];
 
-// 🧩 doelgroep
-function doelgroepAnalyse(s) {
-  if (s.includes("ggz")) {
-    return "Binnen de GGZ speelt spanning tussen autonomie en veiligheid.";
-  }
-  if (s.includes("verstandelijke") || s.includes("vg")) {
-    return "Binnen de VG is communicatie en interpretatie van wil extra belangrijk.";
-  }
-  if (s.includes("jeugd") || s.includes("kind")) {
-    return "Binnen de jeugdzorg speelt bescherming en afhankelijkheid een rol.";
-  }
-  return "Deze situatie vraagt om contextbewust handelen.";
-}
+// 🌐 test
+app.get("/", (req, res) => {
+  res.send("Patronus Dialoog draait");
+});
 
-// ❓ vragen
-const vragenSets = [
-  [
-    "Wat maakt dat dit je raakt?",
-    "Waar zit je twijfel?",
-    "Wat voelt hier niet kloppend?"
-  ],
-  [
-    "Wat probeer je hiermee te voorkomen?",
-    "Is dat risico concreet?",
-    "Wat is het echte probleem hier?"
-  ],
-  [
-    "Hoe kijkt de cliënt hiernaar?",
-    "Is die stem echt meegenomen?",
-    "Wat gebeurt er als je die centraal zet?"
-  ]
-];
-
-// 🧠 eerste stap
+// 🧠 hoofd
 app.post("/reflectie", (req, res) => {
   const situatie = req.body?.situatie || "";
   const s = situatie.toLowerCase();
 
-  const vragen = pick(vragenSets);
+  // 👉 ALS HET EEN VRAAG IS → ANDERS ANTWOORD
+  if (isVraag(s)) {
+    return res.json({
+      tekst: antwoordOpVraag(s)
+    });
+  }
 
+  // 👉 ANDERS → reflectie
   const tekst = `
 🔍 Reflectie  
 ${pick(toon)}
@@ -72,18 +76,10 @@ ${pick(toon)}
 ⚖️ Juridische duiding  
 ${pick(juridisch)}
 
-🧩 Context  
-${doelgroepAnalyse(s)}
-
-❓ Vragen  
-- ${vragen[0]}  
-- ${vragen[1]}  
-- ${vragen[2]}
-
 📌 Jouw situatie  
 ${situatie}
 
-✍️ Reageer op een vraag om verder te verdiepen.
+❓ Wat maakt dat deze situatie je bezighoudt?
 `;
 
   res.json({ tekst });
@@ -96,33 +92,20 @@ app.post("/vervolg", (req, res) => {
   const tekst = `
 🔁 Verdieping  
 
-Jouw reactie:  
+Je reactie:  
 "${antwoord}"
 
 🧠 Reflectie  
-Wat zichtbaar wordt, is dat jouw antwoord richting geeft aan waar de spanning zit.
+Wat zegt dit over waar voor jou de spanning zit?
 
-⚖️ Juridisch  
-Blijft het handelen in lijn met 'nee, tenzij'?
-
-❓ Doorvragen  
-- Wat gebeurt er als je niets verandert?  
-- Wat probeer je hier eigenlijk op te lossen?  
-- Wat vraagt dit van jou als professional?
-
-🤝 Blijft dit knagen?  
-Patronus kan met je meekijken en helpen verdiepen.
+❓ Doorvraag  
+Wat vraagt deze situatie van jou?
 `;
 
   res.json({ tekst });
 });
 
-// test
-app.get("/", (req, res) => {
-  res.send("Patronus Dialoog draait");
-});
-
-// server
+// 🚀 server
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
