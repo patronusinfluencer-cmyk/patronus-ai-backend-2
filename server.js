@@ -10,6 +10,10 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+app.get("/", (req, res) => {
+  res.send("Patronus AI backend draait");
+});
+
 app.post("/reflectie", async (req, res) => {
   try {
     const situatie = req.body.situatie;
@@ -32,9 +36,12 @@ ${situatie}
       input: prompt
     });
 
-    res.jsonres.json({ tekst: response.output[0].content[0].text });
+    const tekst = response.output[0].content[0].text;
+
+    res.json({ tekst });
 
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "AI fout" });
   }
 });
