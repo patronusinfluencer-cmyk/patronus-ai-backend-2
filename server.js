@@ -1,134 +1,139 @@
 import express from "express";
 import cors from "cors";
+import fs from "fs";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🧠 simpel geheugen (per gebruiker via naam)
-let gesprekken = {};
+const FILE = "gesprekken.json";
 
-// 🎲 helper
+// 📂 laad bestaande gesprekken
+function loadData() {
+  if (!fs.existsSync(FILE)) return {};
+  return JSON.parse(fs.readFileSync(FILE));
+}
+
+// 💾 opslaan
+function saveData(data) {
+  fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
+}
+
+// geheugen
+let gesprekken = loadData();
+
+// helper
 function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
 // 🔍 analyse
-function analyseSituatie(s) {
-
+function analyse(s) {
   if (s.includes("naar buiten")) {
     return {
-      reflectie: "Hier wordt direct ingegrepen in bewegingsvrijheid.",
-      juridisch: "Dit kan onder onvrijwillige zorg vallen en vraagt een zware onderbouwing binnen de Wzd.",
-      verdieping: "De vraag is of dit echt noodzakelijk is.",
-      confrontatie: "Wie wordt hier beschermd — de cliënt of de situatie?"
-    };
-  }
-
-  if (s.includes("telefoon") || s.includes("contact")) {
-    return {
-      reflectie: "Hier wordt communicatievrijheid beperkt.",
+      reflectie: "Hier wordt bewegingsvrijheid beperkt.",
       juridisch: "Dit kan onvrijwillige zorg zijn.",
-      verdieping: "Zijn er minder ingrijpende alternatieven?",
-      confrontatie: "Wat is het echte risico?"
+      confrontatie: "Wie wordt hier beschermd?"
     };
   }
-
   return {
-    reflectie: "Deze situatie vraagt om een zorgvuldige afweging.",
-    juridisch: "Binnen de Wzd geldt: nee, tenzij.",
-    verdieping: "Wat is hier echt noodzakelijk?",
-    confrontatie: "Wat wordt hier eigenlijk opgelost?"
+    reflectie: "Dit vraagt om zorgvuldige afweging.",
+    juridisch: "Wzd: nee, tenzij.",
+    confrontatie: "Wat wordt hier opgelost?"
   };
 }
 
 // 🌐 test
 app.get("/", (req, res) => {
-  res.send("Patronus Persoonlijk draait");
+  res.send("Patronus Pro draait");
 });
 
-// 🧠 eerste stap
+// 🧠 start
 app.post("/reflectie", (req, res) => {
-  const naam = req.body?.naam || "professional";
-  const situatie = req.body?.situatie || "";
+  const naam = req.body.naam || "onbekend";
+  const situatie = req.body.situatie || "";
   const s = situatie.toLowerCase();
 
-  // opslaan
   gesprekken[naam] = {
     situatie,
     geschiedenis: []
   };
 
-  const analyse = analyseSituatie(s);
+  saveData(gesprekken);
 
-  const tekst = `
-🔍 Reflectie (${naam})  
-${analyse.reflectie}
+  const a = analyse(s);
 
-⚖️ Juridische duiding  
-${analyse.juridisch}
+  res.json({
+    tekst: `
+🔍 ${a.reflectie}
 
-🧠 Verdieping  
-${analyse.verdieping}
+⚖️ ${a.juridisch}
 
-⚡ Confrontatie  
-${analyse.confrontatie}
+⚡ ${a.confrontatie}
 
-📌 Jouw situatie  
-${situatie}
+📌 ${situatie}
 
-❓ Doorvragen  
-- Wat maakt dat deze maatregel wordt ingezet?  
-- Is dit aantoonbaar noodzakelijk?  
-- Wat zou de cliënt zelf willen?
-
-✍️ Reageer — ik onthoud wat je zegt.
-`;
-
-  res.json({ tekst });
+✍️ Reageer om verder te gaan.
+`
+  });
 });
 
-// 🔁 vervolg (met geheugen)
+// 🔁 vervolg
 app.post("/vervolg", (req, res) => {
-  const naam = req.body?.naam || "professional";
-  const antwoord = req.body?.antwoord || "";
+  const naam = req.body.naam;
+  const antwoord = req.body.antwoord;
 
   if (!gesprekken[naam]) {
-    return res.json({
-      tekst: "Ik mis nog je eerdere situatie. Start eerst een reflectie."
-    });
+    return res.json({ tekst: "Start eerst een gesprek." });
   }
 
   gesprekken[naam].geschiedenis.push(antwoord);
+  saveData(gesprekken);
 
-  const tekst = `
-🔁 Verdieping (${naam})  
+  res.json({
+    tekst: `
+🔁 Verdieping
 
-Jouw reactie:  
 "${antwoord}"
 
-🧠 Reflectie  
-Ik zie een lijn ontstaan in wat je zegt.
+📚 Gesprek:
+${gesprekken[naam].geschiedenis.join("\n")}
 
-⚖️ Juridisch  
-Blijft dit handelen binnen ‘nee, tenzij’?
+❓ Wat valt je op?
+`
+  });
+});
 
-⚡ Confrontatie  
-Wat probeer je hier écht te voorkomen?
+// 📄 export
+app.get("/export/:naam", (req, res) => {
+  const naam = req.params.naam;
 
-📚 Gesprek tot nu toe  
-${gesprekken[naam].geschiedenis.map((g, i) => `${i+1}. ${g}`).join("\n")}
+  if (!gesprekken[naam]) {
+    return res.send("Geen gesprek gevonden.");
+  }
 
-❓ Doorvragen  
-- Wat zegt dit over jouw positie?  
-- Wat zou je doen zonder druk van buitenaf?  
-- Waar zit jouw grens?
+  const tekst = `
+Situatie:
+${gesprekken[naam].situatie}
 
-🤝 Patronus  
-Blijft dit spelen, dan kan het helpen om hier samen naar te kijken.
+Gesprek:
+${gesprekken[naam].geschiedenis.join("\n")}
 `;
 
-  res.json({ tekst });
+  res.setHeader("Content-Disposition", "attachment; filename=gesprek.txt");
+  res.send(tekst);
+});
+
+// 📩 contact (simpele versie)
+app.post("/contact", (req, res) => {
+  const naam = req.body.naam;
+  const bericht = req.body.bericht;
+
+  console.log("CONTACT:", naam, bericht);
+
+  res.json({
+    tekst: "Bericht ontvangen. Patronus neemt contact op."
+  });
 });
 
 // 🚀 server
