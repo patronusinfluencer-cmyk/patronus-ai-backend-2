@@ -5,92 +5,109 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
 function analyse(s) {
 
   if (s.includes("naar buiten")) {
     return {
-      reflectie: "Hier wordt de bewegingsvrijheid van de cliënt beperkt.",
-      juridisch: "Binnen de Wzd kan dit onvrijwillige zorg zijn en vraagt dit een duidelijke onderbouwing.",
-      actie: "Ga na of deze beperking formeel is vastgelegd en of minder ingrijpende alternatieven zijn onderzocht.",
-      confrontatie: "Is dit echt noodzakelijk — of vooral praktisch voor de omgeving?"
+      reflectie: pick([
+        "Hier wordt de bewegingsvrijheid van de cliënt beperkt.",
+        "Dit raakt direct aan vrijheid en autonomie.",
+        "Hier lijkt sprake van een vrijheidsbeperkende maatregel."
+      ]),
+      juridisch: pick([
+        "Dit kan onder onvrijwillige zorg vallen binnen de Wzd.",
+        "De Wzd stelt hier strikte eisen aan proportionaliteit.",
+        "Dit vraagt een duidelijke juridische onderbouwing."
+      ]),
+      actie: pick([
+        "Controleer of deze maatregel formeel is vastgelegd.",
+        "Onderzoek minder ingrijpende alternatieven.",
+        "Ga na of de cliënt hierbij betrokken is geweest."
+      ]),
+      confrontatie: pick([
+        "Is dit echt noodzakelijk — of vooral praktisch?",
+        "Wie wordt hier beschermd?",
+        "Wat zou er gebeuren als je dit niet doet?"
+      ])
     };
   }
 
   return {
-    reflectie: "Deze situatie vraagt om een zorgvuldige afweging.",
-    juridisch: "Binnen de Wzd geldt het uitgangspunt: nee, tenzij.",
-    actie: "Breng eerst helder in kaart wat het doel is van het handelen en of dit proportioneel is.",
-    confrontatie: "Wat probeer je hier eigenlijk op te lossen?"
+    reflectie: pick([
+      "Er lijkt iets niet in balans.",
+      "Deze situatie vraagt om nadere reflectie.",
+      "Hier zit mogelijk spanning onder de oppervlakte."
+    ]),
+    juridisch: pick([
+      "Binnen de Wzd geldt: nee, tenzij.",
+      "Beperkingen moeten goed onderbouwd zijn.",
+      "De minst ingrijpende optie moet leidend zijn."
+    ]),
+    actie: pick([
+      "Breng het doel van het handelen helder in kaart.",
+      "Kijk of dit proportioneel is.",
+      "Onderzoek alternatieven."
+    ]),
+    confrontatie: pick([
+      "Wat probeer je hier op te lossen?",
+      "Waar zit de echte spanning?",
+      "Wat wringt hier voor jou?"
+    ])
   };
 }
 
-// test
 app.get("/", (req, res) => {
-  res.send("Patronus Actie draait");
+  res.send("Patronus werkt");
 });
 
-// hoofd
 app.post("/reflectie", (req, res) => {
   const situatie = req.body?.situatie || "";
-  const s = situatie.toLowerCase();
+  const a = analyse(situatie.toLowerCase());
 
-  const a = analyse(s);
+  res.json({
+    tekst: `
+🔍 ${a.reflectie}
 
-  const tekst = `
-🔍 Reflectie  
-${a.reflectie}
+⚖️ ${a.juridisch}
 
-⚖️ Juridische duiding (Wzd)  
-${a.juridisch}
+🛠️ ${a.actie}
 
-🛠️ Wat kun je doen  
-${a.actie}
+⚡ ${a.confrontatie}
 
-⚡ Scherpte  
-${a.confrontatie}
+📌 ${situatie}
 
-📌 Jouw situatie  
-${situatie}
-
-❓ Vraag aan jou  
-Wat maakt dat deze situatie zo blijft spelen?
-
-🤝 Kom je er niet uit?  
-Sommige situaties vragen om meer dan reflectie alleen.  
-Wil je hier samen naar kijken? Ga dan naar:  
-👉 https://patronusgroep.nl/contact
-`;
-
-  res.json({ tekst });
+✍️ Typ hieronder je reactie en klik op 'Verdiep verder'
+`
+  });
 });
 
-// vervolg
 app.post("/vervolg", (req, res) => {
   const antwoord = req.body?.antwoord || "";
 
-  const tekst = `
-🔁 Verdieping  
-
-Je reactie:  
+  res.json({
+    tekst: `
+🔁 Je reactie:
 "${antwoord}"
 
-🧠 Reflectie  
-Je zit waarschijnlijk op een punt waar twijfel en verantwoordelijkheid samenkomen.
+🧠 Wat hier zichtbaar wordt:
+Je benoemt een belangrijke spanning.
 
-❓ Doorvraag  
-Wat heb jij nodig om hier een volgende stap in te zetten?
+❓ Doorvragen:
+- Wat maakt dit voor jou lastig?
+- Wat zou een eerste kleine stap zijn?
+- Wat heb je nodig?
 
-🤝 Hulp nodig?  
-Je hoeft dit niet alleen te doen.  
 👉 https://patronusgroep.nl/contact
-`;
-
-  res.json({ tekst });
+`
+  });
 });
 
-// server
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Server draait op poort " + PORT);
+  console.log("Server draait");
 });
