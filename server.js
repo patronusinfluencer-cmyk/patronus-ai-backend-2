@@ -14,17 +14,44 @@ app.get("/", (req, res) => {
   res.send("Patronus AI backend draait");
 });
 
-app.post("/reflectie", (req, res) => {
-  console.log("Binnengekomen:", req.body);
+app.post("/reflectie", async (req, res) => {
+  try {
+    const situatie = req.body.situatie;
 
-  const situatie = req.body?.situatie || "geen input";
+    const prompt = `
+Je bent Patronus Reflectie®.
 
-  res.json({
-    tekst: "🔍 Reflectie: " + situatie
-  });
+Je helpt professionals in de zorg met reflectie, analyse en dialoog.
+
+Geef een antwoord in het Nederlands in 3 delen:
+
+1. Reflectie (kort en scherp)
+2. Analyse (met Wzd perspectief: rechten, autonomie, proportionaliteit)
+3. Dialoog (hoe zou je dit bespreekbaar maken)
+
+Situatie:
+${situatie}
+`;
+
+    const response = await client.responses.create({
+      model: "gpt-4.1-mini",
+      input: prompt
+    });
+
+    const tekst = response.output[0].content[0].text;
+
+    res.json({ tekst });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "AI fout" });
+  }
 });
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log("Server draait op poort " + PORT);
 });
+
+  } catch (error) {
