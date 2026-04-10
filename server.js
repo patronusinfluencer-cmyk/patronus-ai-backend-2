@@ -40,7 +40,6 @@ ${situatie}
       input: prompt
     });
 
-    // ROBUUSTE UITLEZING (werkt altijd)
     let tekst =
       response.output?.[0]?.content?.[0]?.text ||
       response.output_text ||
@@ -49,10 +48,14 @@ ${situatie}
     res.json({ tekst });
 
   } catch (error) {
-    console.error("AI fout:", error);
-    res.status(500).json({ error: "AI fout" });
+    console.error("VOLLEDIGE FOUT:", error);
+
+    res.status(500).json({
+      error: "AI fout",
+      details: error.message || "Onbekende fout"
+    });
   }
-});
+}); // 🔥 DIT MISSTE BIJ JOU
 
 // Render poort
 const PORT = process.env.PORT || 3000;
