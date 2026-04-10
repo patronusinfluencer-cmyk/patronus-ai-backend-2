@@ -1,65 +1,20 @@
-import express from "express";
-import cors from "cors";
-import OpenAI from "openai";
+app.post("/reflectie", (req, res) => {
+  const situatie = req.body.situatie || "Geen situatie opgegeven";
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+  const tekst = `
+🔍 Reflectie  
+De situatie die je beschrijft laat een spanningsveld zien tussen bescherming en autonomie. Het handelen lijkt ingegeven door zorg, maar roept vragen op over de positie van de cliënt.
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+⚖️ Analyse (Wzd)  
+Binnen de Wet zorg en dwang geldt het uitgangspunt: nee, tenzij. Beperkingen zoals controle van communicatie of beperking van contact kunnen vallen onder onvrijwillige zorg. Dit vraagt om een zorgvuldige afweging van proportionaliteit, subsidiariteit en vooral: is de cliënt gehoord en betrokken?
 
-// Test route
-app.get("/", (req, res) => {
-  res.send("Patronus AI backend draait");
-});
+🗣️ Dialoog  
+Een mogelijke ingang in gesprek:
+"Ik merk dat er zorgen zijn over veiligheid. Tegelijk zie ik dat dit invloed heeft op de autonomie van de cliënt. Hoe kunnen we samen kijken naar een oplossing die zowel veiligheid als eigen regie respecteert?"
 
-// Reflectie route
-app.post("/reflectie", async (req, res) => {
-  try {
-    const situatie = req.body.situatie || "Geen situatie opgegeven";
-
-    const prompt = `
-Je bent Patronus Reflectie®.
-
-Je helpt professionals in de zorg met reflectie, analyse en dialoog.
-
-Geef een antwoord in het Nederlands in 3 delen:
-
-1. Reflectie (kort en scherp)
-2. Analyse (met Wzd perspectief: rechten, autonomie, proportionaliteit)
-3. Dialoog (hoe zou je dit bespreekbaar maken)
-
-Situatie:
+📌 Jouw situatie:  
 ${situatie}
 `;
 
-    const response = await client.responses.create({
-      model: "gpt-4.1-mini",
-      input: prompt
-    });
-
-    let tekst =
-      response.output?.[0]?.content?.[0]?.text ||
-      response.output_text ||
-      "Geen antwoord ontvangen";
-
-    res.json({ tekst });
-
-  } catch (error) {
-    console.error("VOLLEDIGE FOUT:", error);
-
-    res.status(500).json({
-      error: "AI fout",
-      details: error.message || "Onbekende fout"
-    });
-  }
-}); // 🔥 DIT MISSTE BIJ JOU
-
-// Render poort
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log("Server draait op poort " + PORT);
+  res.json({ tekst });
 });
