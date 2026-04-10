@@ -5,133 +5,124 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔁 random helper
+// helper
 function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// 🔍 Test route
-app.get("/", (req, res) => {
-  res.send("Patronus Pro draait");
-});
+// 🎭 toon
+const toon = [
+  "Hier schuurt het — en dat is niet toevallig.",
+  "Je voelt dat dit niet helemaal klopt.",
+  "Dit vraagt om vertraging en reflectie.",
+  "Hier zit spanning tussen intentie en effect."
+];
 
-// 🧠 Reflectie-engine
+// ⚖️ juridisch
+const juridisch = [
+  "Binnen de Wzd geldt het uitgangspunt: nee, tenzij.",
+  "Dit kan vallen onder onvrijwillige zorg.",
+  "De kernvraag is proportionaliteit en subsidiariteit."
+];
+
+// 🧩 doelgroep
+function doelgroepAnalyse(s) {
+  if (s.includes("ggz")) {
+    return "Binnen de GGZ speelt spanning tussen autonomie en veiligheid.";
+  }
+  if (s.includes("verstandelijke") || s.includes("vg")) {
+    return "Binnen de VG is communicatie en interpretatie van wil extra belangrijk.";
+  }
+  if (s.includes("jeugd") || s.includes("kind")) {
+    return "Binnen de jeugdzorg speelt bescherming en afhankelijkheid een rol.";
+  }
+  return "Deze situatie vraagt om contextbewust handelen.";
+}
+
+// ❓ vragen
+const vragenSets = [
+  [
+    "Wat maakt dat dit je raakt?",
+    "Waar zit je twijfel?",
+    "Wat voelt hier niet kloppend?"
+  ],
+  [
+    "Wat probeer je hiermee te voorkomen?",
+    "Is dat risico concreet?",
+    "Wat is het echte probleem hier?"
+  ],
+  [
+    "Hoe kijkt de cliënt hiernaar?",
+    "Is die stem echt meegenomen?",
+    "Wat gebeurt er als je die centraal zet?"
+  ]
+];
+
+// 🧠 eerste stap
 app.post("/reflectie", (req, res) => {
   const situatie = req.body?.situatie || "";
   const s = situatie.toLowerCase();
 
-  // 🔍 variaties
-  const reflectiesAlgemeen = [
-    "De situatie laat een spanningsveld zien tussen zorg en autonomie.",
-    "Er lijkt sprake van een complexe afweging tussen bescherming en vrijheid.",
-    "De casus raakt aan de kern van professioneel handelen binnen de zorg."
-  ];
-
-  const reflectiesAutonomie = [
-    "De autonomie van de cliënt lijkt onder druk te staan.",
-    "Er wordt mogelijk ingegrepen in zelfbeschikking.",
-    "De regie van de cliënt lijkt beperkt."
-  ];
-
-  const reflectiesVeiligheid = [
-    "Veiligheid lijkt leidend in het handelen.",
-    "De situatie wordt gestuurd door risico en spanning.",
-    "Bescherming lijkt prioriteit te krijgen boven vrijheid."
-  ];
-
-  const analyseWzd = [
-    "Binnen de Wzd geldt het uitgangspunt ‘nee, tenzij’. Elke beperking moet goed onderbouwd zijn.",
-    "Onvrijwillige zorg vraagt om proportionaliteit, subsidiariteit en zorgvuldige afweging.",
-    "Beperkingen mogen alleen als er geen minder ingrijpende alternatieven zijn."
-  ];
-
-  const analyseVerdieping = [
-    "Het is belangrijk te kijken of de cliënt daadwerkelijk betrokken is bij deze beslissing.",
-    "De vraag is of deze maatregel tijdelijk en toetsbaar is ingericht.",
-    "Ook speelt de vraag of dit handelen voortkomt uit zorg of uit systeemdruk."
-  ];
-
-  const perspectiefClient = [
-    "Vanuit de cliënt kan dit voelen als controle of verlies van vrijheid.",
-    "De cliënt kan dit ervaren als onvoldoende gehoord worden.",
-    "Dit kan invloed hebben op vertrouwen en veiligheid van de cliënt."
-  ];
-
-  const perspectiefProfessional = [
-    "Voor professionals kan dit voortkomen uit zorgen en verantwoordelijkheid.",
-    "Het handelen kan ingegeven zijn door druk om veiligheid te waarborgen.",
-    "Hier speelt vaak de spanning tussen richtlijnen en praktijk."
-  ];
-
-  const dialoogOpen = [
-    "“Wat maakt dat deze keuze nu gemaakt wordt?”",
-    "“Wat is hier precies het risico dat we proberen te voorkomen?”",
-    "“Welke alternatieven zijn overwogen?”"
-  ];
-
-  const dialoogVerdieping = [
-    "“Hoe is de cliënt betrokken bij deze beslissing?”",
-    "“Wat zou een minder ingrijpende optie kunnen zijn?”",
-    "“Wat hebben jullie nodig om dit anders aan te pakken?”"
-  ];
-
-  const tegenvragen = [
-    "Wat zou er gebeuren als je niets zou veranderen?",
-    "Waar zit jouw twijfel precies in deze situatie?",
-    "Wat voelt voor jou hier niet helemaal kloppend?"
-  ];
-
-  // 🧠 logica
-  let reflectie = pick(reflectiesAlgemeen);
-  let extraReflectie = "";
-  let analyse = pick(analyseWzd);
-  let verdieping = pick(analyseVerdieping);
-  let client = pick(perspectiefClient);
-  let professional = pick(perspectiefProfessional);
-  let dialoog = pick(dialoogOpen);
-  let dialoog2 = pick(dialoogVerdieping);
-  let vraag = pick(tegenvragen);
-
-  if (s.includes("telefoon") || s.includes("contact") || s.includes("meelezen")) {
-    extraReflectie = pick(reflectiesAutonomie);
-  } else if (s.includes("agressie") || s.includes("onveilig")) {
-    extraReflectie = pick(reflectiesVeiligheid);
-  } else if (s.includes("beperken") || s.includes("vast") || s.includes("tegenhouden")) {
-    extraReflectie = pick(reflectiesAutonomie);
-  } else {
-    extraReflectie = pick(reflectiesAlgemeen);
-  }
+  const vragen = pick(vragenSets);
 
   const tekst = `
 🔍 Reflectie  
-${reflectie}  
-${extraReflectie}
+${pick(toon)}
 
-⚖️ Analyse (Wzd)  
-${analyse}  
-${verdieping}
+⚖️ Juridische duiding  
+${pick(juridisch)}
 
-👤 Perspectief cliënt  
-${client}
+🧩 Context  
+${doelgroepAnalyse(s)}
 
-👥 Perspectief professional  
-${professional}
+❓ Vragen  
+- ${vragen[0]}  
+- ${vragen[1]}  
+- ${vragen[2]}
 
-🗣️ Dialoog  
-${dialoog}  
-${dialoog2}
-
-❓ Verdiepende vraag  
-${vraag}
-
-📌 Jouw situatie:  
+📌 Jouw situatie  
 ${situatie}
+
+✍️ Reageer op een vraag om verder te verdiepen.
 `;
 
   res.json({ tekst });
 });
 
-// 🌐 Render poort
+// 🔁 vervolg
+app.post("/vervolg", (req, res) => {
+  const antwoord = req.body?.antwoord || "";
+
+  const tekst = `
+🔁 Verdieping  
+
+Jouw reactie:  
+"${antwoord}"
+
+🧠 Reflectie  
+Wat zichtbaar wordt, is dat jouw antwoord richting geeft aan waar de spanning zit.
+
+⚖️ Juridisch  
+Blijft het handelen in lijn met 'nee, tenzij'?
+
+❓ Doorvragen  
+- Wat gebeurt er als je niets verandert?  
+- Wat probeer je hier eigenlijk op te lossen?  
+- Wat vraagt dit van jou als professional?
+
+🤝 Blijft dit knagen?  
+Patronus kan met je meekijken en helpen verdiepen.
+`;
+
+  res.json({ tekst });
+});
+
+// test
+app.get("/", (req, res) => {
+  res.send("Patronus Dialoog draait");
+});
+
+// server
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
