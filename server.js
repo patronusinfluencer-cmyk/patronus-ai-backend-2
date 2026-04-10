@@ -1,142 +1,94 @@
 import express from "express";
 import cors from "cors";
-import fs from "fs";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const FILE = "gesprekken.json";
-
-// 📂 laad bestaande gesprekken
-function loadData() {
-  if (!fs.existsSync(FILE)) return {};
-  return JSON.parse(fs.readFileSync(FILE));
-}
-
-// 💾 opslaan
-function saveData(data) {
-  fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
-}
-
-// geheugen
-let gesprekken = loadData();
-
-// helper
-function pick(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-// 🔍 analyse
 function analyse(s) {
+
   if (s.includes("naar buiten")) {
     return {
-      reflectie: "Hier wordt bewegingsvrijheid beperkt.",
-      juridisch: "Dit kan onvrijwillige zorg zijn.",
-      confrontatie: "Wie wordt hier beschermd?"
+      reflectie: "Hier wordt de bewegingsvrijheid van de cliënt beperkt.",
+      juridisch: "Binnen de Wzd kan dit onvrijwillige zorg zijn en vraagt dit een duidelijke onderbouwing.",
+      actie: "Ga na of deze beperking formeel is vastgelegd en of minder ingrijpende alternatieven zijn onderzocht.",
+      confrontatie: "Is dit echt noodzakelijk — of vooral praktisch voor de omgeving?"
     };
   }
+
   return {
-    reflectie: "Dit vraagt om zorgvuldige afweging.",
-    juridisch: "Wzd: nee, tenzij.",
-    confrontatie: "Wat wordt hier opgelost?"
+    reflectie: "Deze situatie vraagt om een zorgvuldige afweging.",
+    juridisch: "Binnen de Wzd geldt het uitgangspunt: nee, tenzij.",
+    actie: "Breng eerst helder in kaart wat het doel is van het handelen en of dit proportioneel is.",
+    confrontatie: "Wat probeer je hier eigenlijk op te lossen?"
   };
 }
 
-// 🌐 test
+// test
 app.get("/", (req, res) => {
-  res.send("Patronus Pro draait");
+  res.send("Patronus Actie draait");
 });
 
-// 🧠 start
+// hoofd
 app.post("/reflectie", (req, res) => {
-  const naam = req.body.naam || "onbekend";
-  const situatie = req.body.situatie || "";
+  const situatie = req.body?.situatie || "";
   const s = situatie.toLowerCase();
-
-  gesprekken[naam] = {
-    situatie,
-    geschiedenis: []
-  };
-
-  saveData(gesprekken);
 
   const a = analyse(s);
 
-  res.json({
-    tekst: `
-🔍 ${a.reflectie}
-
-⚖️ ${a.juridisch}
-
-⚡ ${a.confrontatie}
-
-📌 ${situatie}
-
-✍️ Reageer om verder te gaan.
-`
-  });
-});
-
-// 🔁 vervolg
-app.post("/vervolg", (req, res) => {
-  const naam = req.body.naam;
-  const antwoord = req.body.antwoord;
-
-  if (!gesprekken[naam]) {
-    return res.json({ tekst: "Start eerst een gesprek." });
-  }
-
-  gesprekken[naam].geschiedenis.push(antwoord);
-  saveData(gesprekken);
-
-  res.json({
-    tekst: `
-🔁 Verdieping
-
-"${antwoord}"
-
-📚 Gesprek:
-${gesprekken[naam].geschiedenis.join("\n")}
-
-❓ Wat valt je op?
-`
-  });
-});
-
-// 📄 export
-app.get("/export/:naam", (req, res) => {
-  const naam = req.params.naam;
-
-  if (!gesprekken[naam]) {
-    return res.send("Geen gesprek gevonden.");
-  }
-
   const tekst = `
-Situatie:
-${gesprekken[naam].situatie}
+🔍 Reflectie  
+${a.reflectie}
 
-Gesprek:
-${gesprekken[naam].geschiedenis.join("\n")}
+⚖️ Juridische duiding (Wzd)  
+${a.juridisch}
+
+🛠️ Wat kun je doen  
+${a.actie}
+
+⚡ Scherpte  
+${a.confrontatie}
+
+📌 Jouw situatie  
+${situatie}
+
+❓ Vraag aan jou  
+Wat maakt dat deze situatie zo blijft spelen?
+
+🤝 Kom je er niet uit?  
+Sommige situaties vragen om meer dan reflectie alleen.  
+Wil je hier samen naar kijken? Ga dan naar:  
+👉 https://patronusgroep.nl/contact
 `;
 
-  res.setHeader("Content-Disposition", "attachment; filename=gesprek.txt");
-  res.send(tekst);
+  res.json({ tekst });
 });
 
-// 📩 contact (simpele versie)
-app.post("/contact", (req, res) => {
-  const naam = req.body.naam;
-  const bericht = req.body.bericht;
+// vervolg
+app.post("/vervolg", (req, res) => {
+  const antwoord = req.body?.antwoord || "";
 
-  console.log("CONTACT:", naam, bericht);
+  const tekst = `
+🔁 Verdieping  
 
-  res.json({
-    tekst: "Bericht ontvangen. Patronus neemt contact op."
-  });
+Je reactie:  
+"${antwoord}"
+
+🧠 Reflectie  
+Je zit waarschijnlijk op een punt waar twijfel en verantwoordelijkheid samenkomen.
+
+❓ Doorvraag  
+Wat heb jij nodig om hier een volgende stap in te zetten?
+
+🤝 Hulp nodig?  
+Je hoeft dit niet alleen te doen.  
+👉 https://patronusgroep.nl/contact
+`;
+
+  res.json({ tekst });
 });
 
-// 🚀 server
+// server
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
