@@ -18,7 +18,7 @@ app.get("/", (req, res) => {
 // Reflectie route
 app.post("/reflectie", async (req, res) => {
   try {
-    const situatie = req.body.situatie;
+    const situatie = req.body.situatie || "Geen situatie opgegeven";
 
     const prompt = `
 Je bent Patronus Reflectie®.
@@ -40,18 +40,21 @@ ${situatie}
       input: prompt
     });
 
-    // BELANGRIJK: juiste uitlezing (crash fix)
-    const tekst = response.output_text;
+    // ROBUUSTE UITLEZING (werkt altijd)
+    let tekst =
+      response.output?.[0]?.content?.[0]?.text ||
+      response.output_text ||
+      "Geen antwoord ontvangen";
 
     res.json({ tekst });
 
   } catch (error) {
-    console.error("Fout in AI:", error);
+    console.error("AI fout:", error);
     res.status(500).json({ error: "AI fout" });
   }
 });
 
-// Poort voor Render
+// Render poort
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
