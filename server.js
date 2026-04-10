@@ -9,7 +9,40 @@ function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// 🧠 herken of het een vraag is
+// 🔍 betekenis herkennen
+function analyseSituatie(s) {
+  if (s.includes("naar buiten") || s.includes("mag niet buiten")) {
+    return {
+      reflectie: "Hier wordt de bewegingsvrijheid van de cliënt direct beperkt.",
+      juridisch: "Het niet naar buiten mogen gaan kan onder onvrijwillige zorg vallen en vraagt een zware onderbouwing binnen de Wzd.",
+      verdieping: "De vraag is of deze beperking echt noodzakelijk is, of voortkomt uit praktische of organisatorische overwegingen."
+    };
+  }
+
+  if (s.includes("telefoon") || s.includes("contact")) {
+    return {
+      reflectie: "Hier wordt ingegrepen in communicatievrijheid.",
+      juridisch: "Beperken van contact kan onvrijwillige zorg zijn en moet zorgvuldig worden afgewogen.",
+      verdieping: "De kernvraag is of er minder ingrijpende alternatieven zijn."
+    };
+  }
+
+  if (s.includes("agressie") || s.includes("onveilig")) {
+    return {
+      reflectie: "Veiligheid lijkt hier de leidende factor.",
+      juridisch: "Ook bij risico blijft de Wzd gelden: minst ingrijpende maatregel.",
+      verdieping: "De vraag is of veiligheid hier wordt gebruikt als argument of als onderbouwde noodzaak."
+    };
+  }
+
+  return {
+    reflectie: "Deze situatie vraagt om een zorgvuldige afweging.",
+    juridisch: "Binnen de Wzd geldt het uitgangspunt: nee, tenzij.",
+    verdieping: "De vraag is wat hier echt noodzakelijk is."
+  };
+}
+
+// 🧠 vraag herkennen
 function isVraag(s) {
   return s.includes("wie") || s.includes("wat") || s.includes("waarom") || s.includes("hoe");
 }
@@ -17,43 +50,19 @@ function isVraag(s) {
 // 🧠 simpele antwoorden
 function antwoordOpVraag(s) {
   if (s.includes("wie is patronus")) {
-    return `
-Patronus is een reflectiepartner die helpt bij het analyseren van situaties binnen zorg, gedrag en de Wet zorg en dwang.  
-Het doel is om bewustwording te vergroten, spanning zichtbaar te maken en tot zorgvuldiger handelen te komen.
-`;
+    return "Patronus is een reflectiepartner die helpt om situaties te analyseren, spanning zichtbaar te maken en tot zorgvuldiger handelen te komen.";
   }
 
   if (s.includes("wat bedoel je")) {
-    return `
-Met de reflectie wordt bedoeld dat we samen kijken naar wat er onder het handelen ligt:  
-intenties, effecten en de positie van de cliënt.
-
-Het gaat dus niet alleen om wat er gebeurt, maar vooral waarom en hoe.
-`;
+    return "Met de reflectie wordt bedoeld dat we kijken naar wat er onder het handelen ligt: intenties, effecten en de positie van de cliënt.";
   }
 
-  return `
-Dat is een goede vraag.  
-Probeer hem iets concreter te maken of koppel hem aan een situatie, dan kan ik gerichter met je meedenken.
-`;
+  return "Goede vraag. Kun je hem iets concreter maken of koppelen aan een situatie?";
 }
-
-// 🎭 reflectie (oude logica)
-const toon = [
-  "Hier schuurt het — en dat is niet toevallig.",
-  "Je voelt dat dit niet helemaal klopt.",
-  "Dit vraagt om vertraging en reflectie."
-];
-
-const juridisch = [
-  "Binnen de Wzd geldt het uitgangspunt: nee, tenzij.",
-  "Dit kan vallen onder onvrijwillige zorg.",
-  "De kernvraag is proportionaliteit en subsidiariteit."
-];
 
 // 🌐 test
 app.get("/", (req, res) => {
-  res.send("Patronus Dialoog draait");
+  res.send("Patronus Slim draait");
 });
 
 // 🧠 hoofd
@@ -61,25 +70,30 @@ app.post("/reflectie", (req, res) => {
   const situatie = req.body?.situatie || "";
   const s = situatie.toLowerCase();
 
-  // 👉 ALS HET EEN VRAAG IS → ANDERS ANTWOORD
+  // 👉 vraag beantwoorden
   if (isVraag(s)) {
     return res.json({
       tekst: antwoordOpVraag(s)
     });
   }
 
-  // 👉 ANDERS → reflectie
+  const analyse = analyseSituatie(s);
+
   const tekst = `
 🔍 Reflectie  
-${pick(toon)}
+${analyse.reflectie}
 
-⚖️ Juridische duiding  
-${pick(juridisch)}
+⚖️ Juridische duiding (Wzd)  
+${analyse.juridisch}
+
+🧠 Verdieping  
+${analyse.verdieping}
 
 📌 Jouw situatie  
 ${situatie}
 
-❓ Wat maakt dat deze situatie je bezighoudt?
+❓ Doorvraag  
+Wat maakt dat deze beperking wordt toegepast — en is die ook echt noodzakelijk?
 `;
 
   res.json({ tekst });
@@ -96,10 +110,13 @@ Je reactie:
 "${antwoord}"
 
 🧠 Reflectie  
-Wat zegt dit over waar voor jou de spanning zit?
+Hier zit vaak de kern: wat proberen we te voorkomen?
+
+⚖️ Juridisch  
+Blijft dit handelen binnen ‘nee, tenzij’?
 
 ❓ Doorvraag  
-Wat vraagt deze situatie van jou?
+Wat zou er gebeuren als de cliënt meer vrijheid krijgt?
 `;
 
   res.json({ tekst });
